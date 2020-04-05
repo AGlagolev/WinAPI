@@ -15,7 +15,11 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch (uMsg)
 	{
 	case WM_INITDIALOG: // инициализация диалогового окна
-		break;
+	{
+	HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1));
+	SendMessage(hwnd, WM_SETICON, 0, LOWORD(hIcon));
+	break;
+	}
 	case WM_COMMAND:  // обработка команд нажатием на кнопки диалогового окна
 		switch (LOWORD(wParam))
 		{
