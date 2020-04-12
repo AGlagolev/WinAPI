@@ -4,7 +4,7 @@
 HWND hEdit1;
 HWND hEdit2;
 
-CHAR str1[] = { "Hello! ..." };
+CHAR str1[] = { "Привет " };
 CHAR str2[] = { 0 };
 
 
@@ -18,19 +18,23 @@ int CALLBACK WinMain (HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine,
 
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	
+
 	switch (uMsg)
 	{
 	case WM_INITDIALOG: // инициализация диалогового окна
 	{
+	
+	// исправлено
+	/*hEdit1 = GetDlgItem(hwnd, IDC_EDIT1);
+	hEdit2 = GetDlgItem(hwnd, IDC_EDIT2);*/
+
 	HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1));
 	SendMessage(hwnd, WM_SETICON, 0, LOWORD(hIcon));
-	
-	hEdit1 = GetDlgItem(hwnd, IDC_EDIT1);
-	hEdit2 = GetDlgItem(hwnd, IDC_EDIT2);
-	
+	/*
 	SendMessage(hEdit1, WM_SETTEXT, 0, (LPARAM)str1);
-	SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str2);
-
+	SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str2);*/
+	//SetDlgItemText(hwnd, IDC_EDIT1, str1);
 
 	break;
 	}
@@ -38,14 +42,19 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		switch (LOWORD(wParam))
 		{
 		case IDOK:
-			MessageBox(hwnd, "Была нажата кнопка ОК ;-)", "Info", MB_OK | MB_ICONINFORMATION);
+			//MessageBox(hwnd, "Была нажата кнопка ОК ;-)", "Info", MB_OK | MB_ICONINFORMATION);
+			GetDlgItemText(hwnd, IDC_EDIT1, str2, 255);
+			strcat(str1, str2);
+			SetDlgItemText(hwnd, IDC_EDIT2, str1);
 			break;
 		case IDCANCEL:
 			EndDialog(hwnd, 0);
 			break;
-		case IDC_COPY:
-			SendMessage(hEdit1, WM_GETTEXT, 255, (LPARAM)str2);
-			SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str2);
+		case IDC_COPY: // исправлено
+			GetDlgItemText(hwnd, IDC_EDIT1, str2, 255);
+			SetDlgItemText(hwnd, IDC_EDIT2, str2);
+			/*SendMessage(hEdit1, WM_GETTEXT, 255, (LPARAM)str2);
+			SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str2);*/
 			break;
 		}
 		break;
