@@ -1,5 +1,5 @@
 #include<Windows.h>
-#include"resource.h"
+#include"resource1.h"
 #include <string>
 
 
@@ -52,7 +52,7 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		
 		switch (LOWORD(wParam))
 		{
-		case IDC_COMBO1:
+		case IDC_LIST1:
 
 			/*if (HIWORD(wParam) == CBN_SELENDOK)
 			{
