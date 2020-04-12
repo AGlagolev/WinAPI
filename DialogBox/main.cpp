@@ -33,9 +33,6 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CLOSE: // закрытие диалогового окна кнопкой X
 		EndDialog(hwnd,0);
-		//return TRUE;
-		break;
-	default:
 		break;
 	}
 	return false;
