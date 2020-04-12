@@ -2,16 +2,13 @@
 #include"resource.h"
 #include <string>
 
-
-
-
 HWND hList;
 
 CHAR string1[] = "This";
 CHAR string2[] = "is";
 CHAR string3[] = "my";
 CHAR string4[] = "first";
-CHAR string5[] = "combo";
+CHAR string5[] = "list";
 CHAR string6[] = "box";
 
 
@@ -40,9 +37,9 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		for (int i = 0; i < sizeof(a) / sizeof(std::string); i++)
 		{
-			strcpy(Mass, a[i].c_str());
+			strcpy_s(Mass, a[i].c_str());
 
-			//SendMessage(hList, CB_ADDSTRING, 0, (LPARAM)Mass);
+			SendMessage(hList, LB_ADDSTRING, 0, (LPARAM)Mass);
 		}
 	}
 	break;
@@ -54,31 +51,25 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 		case IDC_LIST1:
 
-			/*if (HIWORD(wParam) == CBN_SELENDOK)
-			{
-				int i = SendMessage(hCombo, CB_GETCURSEL, 0, 0);
-				SendMessage(hCombo, CB_GETLBTEXT, i, (LPARAM)bufer);
-				MessageBox(hwnd, bufer, "Выбраный пункт выпадающего списка", MB_OK | MB_ICONINFORMATION);
-			}*/
 			break;
 
 
 		case IDOK:
-
-
 		{
 			CHAR bufer[25]{};
-			int i = SendMessage(hList, CB_GETCURSEL, 0, 0);
-			SendMessage(hList, CB_GETLBTEXT, i, (LPARAM)bufer);
+			int i = SendMessage(hList, LB_GETCURSEL, 0, 0);
+			SendMessage(hList, LB_GETTEXT, i, (LPARAM)bufer);
 			MessageBox(hwnd, bufer, "Выбраный пункт выпадающего списка", MB_OK | MB_ICONINFORMATION);
 		}
-		//MessageBox(hwnd, "Hello", "Hi", MB_OK | MB_ICONINFORMATION);
+		
 		break;
 
 		case IDCANCEL:
+		{
 			EndDialog(hwnd, 0);
-			MessageBox(hwnd, "Bye", "Bye", MB_OK | MB_ICONINFORMATION);
+			MessageBox(hwnd, "Bye", "Bye", MB_OK | MB_ICONINFORMATION);			
 			break;
+		}
 		}
 	}
 	break;

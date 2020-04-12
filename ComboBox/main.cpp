@@ -5,7 +5,7 @@
 
 
 
-HWND hList;
+HWND hCombo;
 
 CHAR string1[] = "This";
 CHAR string2[] = "is";
@@ -31,7 +31,7 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1));
 		SendMessage(hwnd, WM_SETICON,1,(LPARAM)hIcon);
-		hList = GetDlgItem(hwnd, IDC_COMBO1);
+		hCombo = GetDlgItem(hwnd, IDC_COMBO1);
 
 		//Добавляем строки в ComboBox
 
@@ -40,9 +40,9 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		
 		for (int i = 0; i < sizeof(a)/sizeof(std::string); i++)
 		{
-			strcpy(Mass, a[i].c_str());
+			strcpy_s(Mass, a[i].c_str());
 
-		//SendMessage(hList, CB_ADDSTRING, 0, (LPARAM)Mass);
+		SendMessage(hCombo, CB_ADDSTRING, 0, (LPARAM)Mass);
 		}
 	}
 		break;
@@ -68,8 +68,8 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			
 			{
 			    CHAR bufer[25]{};
-				int i = SendMessage(hList, CB_GETCURSEL, 0, 0);
-				SendMessage(hList, CB_GETLBTEXT, i, (LPARAM)bufer);
+				int i = SendMessage(hCombo, CB_GETCURSEL, 0, 0);
+				SendMessage(hCombo, CB_GETLBTEXT, i, (LPARAM)bufer);
 				MessageBox(hwnd, bufer, "Выбраный пункт выпадающего списка", MB_OK | MB_ICONINFORMATION);
 			}
 			//MessageBox(hwnd, "Hello", "Hi", MB_OK | MB_ICONINFORMATION);
