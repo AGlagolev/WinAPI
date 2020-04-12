@@ -31,6 +31,7 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	SendMessage(hEdit1, WM_SETTEXT, 0, (LPARAM)str1);
 	SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str2);
 
+	SetWindowText(hEdit1, str1);
 
 	break;
 	}
@@ -44,8 +45,8 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			EndDialog(hwnd, 0);
 			break;
 		case IDC_COPY:
-			SendMessage(hEdit1, WM_GETTEXT, 255, (LPARAM)str2);
-			SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str2);
+			GetWindowText(hEdit1, str2, 255);
+			SetWindowText(hEdit2, str2);
 			break;
 		}
 		break;
