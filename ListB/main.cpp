@@ -15,7 +15,7 @@ CHAR string5[] = "combo";
 CHAR string6[] = "box";
 
 
-BOOL CALLBACK DlgProc(HWND hwnd,UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -30,29 +30,29 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 	{
 		HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1));
-		SendMessage(hwnd, WM_SETICON,1,(LPARAM)hIcon);
-		hList = GetDlgItem(hwnd, IDC_COMBO1);
+		SendMessage(hwnd, WM_SETICON, 1, (LPARAM)hIcon);
+		hList = GetDlgItem(hwnd, IDC_LIST1);
 
 		//Добавляем строки в ComboBox
 
 		std::string a[6] = { string1, string2, string3, string4, string5, string6 };
 		CHAR Mass[100];
-		
-		for (int i = 0; i < sizeof(a)/sizeof(std::string); i++)
+
+		for (int i = 0; i < sizeof(a) / sizeof(std::string); i++)
 		{
 			strcpy(Mass, a[i].c_str());
 
-		//SendMessage(hList, CB_ADDSTRING, 0, (LPARAM)Mass);
+			//SendMessage(hList, CB_ADDSTRING, 0, (LPARAM)Mass);
 		}
 	}
-		break;
+	break;
 	case WM_COMMAND:
 	{
-		
-		
+
+
 		switch (LOWORD(wParam))
 		{
-		case IDC_COMBO1:
+		case IDC_LIST1:
 
 			/*if (HIWORD(wParam) == CBN_SELENDOK)
 			{
@@ -64,16 +64,16 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 
 		case IDOK:
-			
-			
-			{
-			    CHAR bufer[25]{};
-				int i = SendMessage(hList, CB_GETCURSEL, 0, 0);
-				SendMessage(hList, CB_GETLBTEXT, i, (LPARAM)bufer);
-				MessageBox(hwnd, bufer, "Выбраный пункт выпадающего списка", MB_OK | MB_ICONINFORMATION);
-			}
-			//MessageBox(hwnd, "Hello", "Hi", MB_OK | MB_ICONINFORMATION);
-			break;
+
+
+		{
+			CHAR bufer[25]{};
+			int i = SendMessage(hList, CB_GETCURSEL, 0, 0);
+			SendMessage(hList, CB_GETLBTEXT, i, (LPARAM)bufer);
+			MessageBox(hwnd, bufer, "Выбраный пункт выпадающего списка", MB_OK | MB_ICONINFORMATION);
+		}
+		//MessageBox(hwnd, "Hello", "Hi", MB_OK | MB_ICONINFORMATION);
+		break;
 
 		case IDCANCEL:
 			EndDialog(hwnd, 0);
@@ -81,12 +81,12 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 	}
-		break;
+	break;
 	case WM_CLOSE:
 		EndDialog(hwnd, 0);
 		break;
 
-	
+
 	}
 	return FALSE;
 }
