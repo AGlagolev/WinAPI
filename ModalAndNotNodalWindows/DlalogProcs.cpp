@@ -13,6 +13,31 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_INITDIALOG:
 	{
+	case WM_CTLCOLORSTATIC:
+	{
+		if ((HWND)lParam == GetDlgItem(hwnd, IDC_STATIC1))
+		{
+			HDC hdc = (HDC)wParam;
+			SetBkMode(hdc, TRANSPARENT);
+			SetTextColor(hdc, RGB(0, 0, 200));
+			return (int)GetStockObject(NULL_BRUSH);
+			//break;
+		}
+	}
+	break;
+	case WM_CTLCOLOREDIT:
+	{
+		
+			HDC hdc = (HDC)wParam;
+			SetBkMode(hdc, OPAQUE);
+			SetTextColor(hdc, RGB(255, 255, 255));
+			HBRUSH hBrushColor = CreateSolidBrush(RGB(255, 255, 255));
+			SetTextColor(hdc, RGB(200,0,0));
+			return (LRESULT)hBrushColor;
+			//break;
+		
+	}
+	break;
 		hInst = GetModuleHandle(NULL);
 		break;
 	}
@@ -20,6 +45,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		switch (LOWORD(wParam))
 		{
+		
 		case ID_BTN_MODAL:
 		{
 			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_MODAL), hwnd, DlgModal, 0);
