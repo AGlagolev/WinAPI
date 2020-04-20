@@ -2,6 +2,7 @@
 #include"resource.h"
 
 HINSTANCE hInst; // Variable
+HWND hwndNotModal;
 
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgModal(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -38,6 +39,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		case ID_BTN_NOT_MODAL:
 		{
+			//hwndNotModal = CreateDialog(hInst, MAKEINTRESOURCE(IDD_NMODAL), 0, DlgNotModal, 0 );
 			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_NMODAL), 0, DlgNotModal, 0);
 			break;
 		}
