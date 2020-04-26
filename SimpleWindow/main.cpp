@@ -1,8 +1,12 @@
 #include <Windows.h>
 #include "resource.h"
+#include <string.h>
 
-CHAR str1[] = { 0 };
-CHAR str2[] = { 0 };
+HWND hEdit1;
+HWND hEdit2;
+
+CHAR str1[80] = { 0 };
+CHAR str2[80] = { 0 };
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -13,7 +17,12 @@ BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 /***********************************WinMain**************************************************/
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
+
+
+
+
 	//1)Регистрация класса окна:
+	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
 	CONST CHAR SZ_CLASS_NAME[] = "myWindowClass";
 	WNDCLASSEX wc;
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -30,7 +39,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
 	wc.lpszMenuName = NULL;/*MAKEINTRESOURCE(IDR_MENU1); - прикрепление статического меню*/
 	wc.lpszClassName = SZ_CLASS_NAME;
-	
+	//wc.lpszMenuName = MAKEINTRESOURCE(IDR_ACCELERATOR1);
 
 
 	if (!RegisterClassEx(&wc))
@@ -71,6 +80,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 	}
 	return msg.wParam;
 
+	
+	BOOL bRet = 0;
+	while (bRet = GetMessage(&msg, NULL, 0, 0))
+	{
+		if (-1 == bRet) break;
+		if (!TranslateAccelerator(msg.hwnd, hAccel, &msg))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+	
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -80,6 +101,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 	// Creating menu
 	{
+
 
 		HMENU hMenu = CreateMenu();
 		HMENU hSubMenu;
@@ -111,17 +133,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_HELP_ABOUT:
 		{
-			//int ret = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd,DlgProc);
-			switch (DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd, DlgProc))
-			{
-			case IDOK: MessageBox(hwnd, "Dialog ended with OK!","Info", MB_OK | MB_ICONINFORMATION); break;
-			case IDCANCEL: MessageBox(hwnd, "Dialog ended with CANCEL!","Info", MB_OK | MB_ICONINFORMATION); break;
-			case -1: MessageBox(hwnd, "Dialog eFailed!", "Error", MB_OK | MB_ICONERROR); break;
-			}
+			
+			DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_USER), hwnd, DlgUsrProc, 0);	
 		
 		}
 			break;
-		
+		case ID_HELP_USER:
+		{
+			//int ret = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd,DlgProc);
+			switch (DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_USER), hwnd, DlgUsrProc))
+			{
+			case IDOK: MessageBox(hwnd, "Dialog ended with OK!", "Info", MB_OK | MB_ICONINFORMATION); break;
+			case IDCANCEL: MessageBox(hwnd, "Dialog ended with CANCEL!", "Info", MB_OK | MB_ICONINFORMATION); break;
+			case -1: MessageBox(hwnd, "Dialog eFailed!", "Error", MB_OK | MB_ICONERROR); break;
+			}
+
+		}
+		break;
+		//case ID_F1:
+
 		}
 	
 	}
@@ -182,13 +212,14 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-
 	switch (uMsg)
 	{
 	case WM_INITDIALOG:
 	{
 		hEdit1 = GetDlgItem(hwnd, IDC_EDIT1);
 		hEdit2 = GetDlgItem(hwnd, IDC_EDIT2);
+		SendMessage(hEdit1, WM_SETTEXT, 0, (LPARAM)str1);
+		SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str1);
 	}
 	break;
 	case WM_COMMAND:
@@ -198,9 +229,13 @@ BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case IDOK:
 		{
-
+			SendMessage(hEdit1, WM_GETTEXT, 255, (LPARAM)str1);
+			SendMessage(hEdit2, WM_GETTEXT, 255, (LPARAM)str2);
+						
+			strcat_s(str1, " ");
+			strcat_s(str1,str2);
 			EndDialog(hwnd, IDOK);
-			MessageBox(hwnd, "Вы ввели", "Вы уверены?", MB_YESNO | MB_ICONQUESTION);
+			MessageBox(hwnd, str1, "Вы ввели", MB_YESNO | MB_ICONQUESTION);
 			break;
 		}
 		case IDCANCEL:
@@ -213,7 +248,7 @@ BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_CLOSE:
 	{
-
+		EndDialog(hwnd,NULL);
 	}
 	break;
 	default: return FALSE;
