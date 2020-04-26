@@ -1,5 +1,10 @@
 #include <Windows.h>
 #include "resource.h"
+
+CHAR str1[] = { 0 };
+CHAR str2[] = { 0 };
+
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -182,7 +187,8 @@ BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_INITDIALOG:
 	{
-
+		hEdit1 = GetDlgItem(hwnd, IDC_EDIT1);
+		hEdit2 = GetDlgItem(hwnd, IDC_EDIT2);
 	}
 	break;
 	case WM_COMMAND:
