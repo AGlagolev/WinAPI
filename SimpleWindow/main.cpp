@@ -78,7 +78,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 			DispatchMessage(&msg);
 		}
 	}
-	
 	return msg.wParam;
 
 }
@@ -199,7 +198,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case ID_HELP_ABOUT:
 		{
 			
-			DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_USER), hwnd, DlgUsrProc, 0);	
+			DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd, DlgProc, 0);	
 		
 		}
 			break;
@@ -218,7 +217,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 		case ID_F1:
 			MessageBox(hwnd, "Use key F1!", "Info", MB_OK | MB_ICONINFORMATION);
-			DestroyWindow(hwnd);
+			DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd, DlgProc, 0);
 			break;
 		}
 	
