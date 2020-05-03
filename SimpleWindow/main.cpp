@@ -1,7 +1,6 @@
 #include <Windows.h>
 #include "resource.h"
 #include <string.h>
-#include <stdio.h>
 
 HWND hEdit1;
 HWND hEdit2;
@@ -68,7 +67,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
-	// Message loop
+	///////////////   Message loop
 
 	MSG msg; // Переменная сообщение
 	while (GetMessage(&msg, NULL, 0, 0) > 0)
@@ -83,7 +82,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 	return msg.wParam;
 
 }
-
+/******************************************   WndProc   ********************************************************************************/
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
@@ -241,7 +240,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	return 0;
 }
-
+/******************************************   DlgProc   ********************************************************************************/
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 
@@ -279,7 +278,7 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	return TRUE;
 }
-
+/*******************************************   DlgUsrProc   ****************************************************************************/
 BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
@@ -325,8 +324,7 @@ BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	return TRUE;
 }
-
-
+/*******************************************   LoadTextFileToEdit   ********************************************************************/
 BOOL LoadTextFileToEdit(HWND hEdit, LPSTR pszFileName)
 {
 	BOOL bSuccess = FALSE; // флаг успешности
@@ -353,7 +351,7 @@ BOOL LoadTextFileToEdit(HWND hEdit, LPSTR pszFileName)
 	}
 	return bSuccess;
 }
-
+/******************************************* SaveTextFileFromEdit   ********************************************************************/
 BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName)
 {
 	BOOL bSuccess = FALSE;
