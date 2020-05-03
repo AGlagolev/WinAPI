@@ -161,7 +161,7 @@ END
 
 IDR_ACCELERATOR1 ACCELERATORS
 BEGIN
-    VK_F1,          ID_F1,                  VIRTKEY, SHIFT, NOINVERT
+    VK_F1,          ID_F1,                  VIRTKEY, NOINVERT
 END
 
 #endif    // Russian (Russia) resources
