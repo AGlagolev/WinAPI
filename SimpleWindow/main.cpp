@@ -71,24 +71,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 	// Message loop
 
 	MSG msg; // Переменная сообщение
-	while (GetMessage(&msg, NULL, 0, 0) > 0)
+
+	BOOL bRet = 0;
+	while (bRet = GetMessage(&msg, NULL, 0, 0))
+	{
+		if (-1 == bRet) break;
+		if (!TranslateAccelerator(msg.hwnd, hAccel, &msg))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+	/*while (GetMessage(&msg, NULL, 0, 0) > 0)
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-	}
+	}*/
 	return msg.wParam;
 
-	MSG msg1; // Переменная сообщение
-	BOOL bRet = 0;
-	while (bRet = GetMessage(&msg1, NULL, 0, 0))
-	{
-		if (-1 == bRet) break;
-		if (!TranslateAccelerator(msg1.hwnd, hAccel, &msg1))
-		{
-			TranslateMessage(&msg1);
-			DispatchMessage(&msg1);
-		}
-	}
+	//MSG msg1; // Переменная сообщение
+	
 	
 }
 
@@ -167,7 +169,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			ofn.lpstrFile = szFileName; // строка куда сохранится путь к файлу
 			ofn.nMaxFile = MAX_PATH; // Максимально возможная длина пути 256 байт
 			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY; // флаги открытия файла
-			//ofn.lpstrDefExt = "All files";
+			ofn.lpstrDefExt = "txt"; // разрешение по умолчанию с которым сохраняется файл
 			
 			if (GetOpenFileName(&ofn)) // Если получилось открыть файл
 			{
@@ -192,11 +194,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			ofn.lpstrFile = szFileName; // строка куда сохранится путь к файлу
 			ofn.nMaxFile = MAX_PATH; // Максимально возможная длина пути 256 байт
 			ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST|OFN_OVERWRITEPROMPT|OFN_HIDEREADONLY; // флаги открытия файла
+			ofn.lpstrDefExt = "txt"; // разрешение по умолчанию с которым сохраняется файл
 
 			if (GetSaveFileName(&ofn)) // Если получилось открыть файл
 			{
 				//Происходит чето-там
-				
+				HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+				SaveTextFileFromEdit(hEdit, szFileName);
 			}
 
 		}
@@ -226,6 +230,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 		case ID_F1:
+			MessageBox(hwnd, "Use key F1!", "Info", MB_OK | MB_ICONINFORMATION);
 			DestroyWindow(hwnd);
 			break;
 		}
@@ -376,10 +381,12 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName)
 				if (GetWindowText(hEdit, pszText, dwTextLength + 1))
 				{
 					DWORD dwWritten;
-					if(WriteFile(hFile,pszText,dwTextLength,&dwWritten,NULL))
+					if (WriteFile(hFile, pszText, dwTextLength, &dwWritten, NULL)) bSuccess = TRUE;
 				}
+				GlobalFree(pszText);
 			}
 		}
+		CloseHandle(hFile);
 	}
-
+	return bSuccess;
 }
