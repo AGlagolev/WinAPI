@@ -71,27 +71,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 	// Message loop
 
 	MSG msg; // Переменная сообщение
-
-	BOOL bRet = 0;
-	while (bRet = GetMessage(&msg, NULL, 0, 0))
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
 	{
-		if (-1 == bRet) break;
-		if (!TranslateAccelerator(msg.hwnd, hAccel, &msg))
+		if (!TranslateAccelerator(msg.hwnd, hAccel, &msg)) // Если сообщение от кнопки акселератора
 		{
-			TranslateMessage(&msg);
+			TranslateMessage(&msg);     // Если сообщение не от кнопки акселератора
 			DispatchMessage(&msg);
 		}
 	}
-	/*while (GetMessage(&msg, NULL, 0, 0) > 0)
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}*/
+	
 	return msg.wParam;
 
-	//MSG msg1; // Переменная сообщение
-	
-	
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -135,9 +125,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			GetModuleHandle(NULL),
 			NULL
 		);
-		char s[] = {"asasa"};
-		//SendMessage(hEdit, WM_SETTEXT,);
-
+		
 	}
 	break;
 	case WM_SIZE:
@@ -151,7 +139,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_COMMAND:
 	{
-		switch (LOWORD(wParam)) //LOWORD содержит ID сообщения
+		switch (LOWORD(wParam)) // LOWORD содержит ID сообщения
 		{
 
 		case ID_FILE_OPEN:
