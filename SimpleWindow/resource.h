@@ -8,6 +8,8 @@
 #define IDD_DIALOG1                     108
 #define IDD_USER                        108
 #define IDR_ACCELERATOR1                110
+#define IDR_MENU2                       111
+#define IDC_MAIN_EDIT                   111
 #define IDC_EDIT1                       1001
 #define IDC_EDIT2                       1002
 #define ID_HELP_ABOUT                   40001
@@ -18,14 +20,13 @@
 #define ID_FILE_EXIT                    40006
 #define ID_Menu                         40007
 #define ID_HELP_USER                    40008
-#define ID_ACCELERATOR40009             40009
 #define ID_F1                           40009
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        111
+#define _APS_NEXT_RESOURCE_VALUE        112
 #define _APS_NEXT_COMMAND_VALUE         40011
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           101

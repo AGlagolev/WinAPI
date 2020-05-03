@@ -2,6 +2,7 @@
 #include "resource.h"
 #include <string.h>
 
+
 HWND hEdit1;
 HWND hEdit2;
 
@@ -17,10 +18,6 @@ BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 /***********************************WinMain**************************************************/
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
-
-
-
-
 	//1)Регистрация класса окна:
 	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
 	CONST CHAR SZ_CLASS_NAME[] = "myWindowClass";
@@ -101,8 +98,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 	// Creating menu
 	{
-
-
 		HMENU hMenu = CreateMenu();
 		HMENU hSubMenu;
 
@@ -121,6 +116,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		//Adding icons
 		HICON hIcon = (HICON)LoadImage(NULL, "Document.ico", IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
 		SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+		
+		//Text editor:
+		HWND hEdit = CreateWindowEx(
+			WS_EX_CLIENTEDGE, "Edit", "",
+			WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL,
+			0, 0, 100, 100,
+			hwnd,
+		    IDC_MAIN_EDIT,
+			GetModuleHandle(NULL),
+			NULL
+		);
+
 
 	}
 	break;
@@ -150,8 +157,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		}
 		break;
-		//case ID_F1:
-
+		case ID_F1:
+			DestroyWindow(hwnd);
+			break;
 		}
 	
 	}
