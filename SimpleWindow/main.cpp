@@ -168,13 +168,51 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				//Происходит чето-там
 				HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
 				LoadTextFileToEdit(hEdit, szFileName);
-				//*szPath = *szFileName;
-				strncpy_s(szPath, szFileName, sizeof(szPath) - 1);
-				
+				strncpy_s(szPath, szFileName, sizeof(szPath) - 1);				
 			}
 				
 		}
 			break;
+		case ID_FILE_SAVE:
+		{
+		    if(szPath[0]!='\0')
+			{
+				//Происходит чето-там
+				HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+				SaveTextFileFromEdit(hEdit, szPath);
+			}
+			else
+			{
+				OPENFILENAME ofn;  // создаем структуру 
+				CHAR szFileName[MAX_PATH] = {};
+
+				ZeroMemory(&ofn, sizeof(ofn)); // зануление полей структуры
+
+				// Заполняем поля структуры
+				ofn.lStructSize = sizeof(ofn);
+				ofn.hwndOwner = hwnd; // определитель родительского объекта
+				ofn.lpstrFilter = szFilter; // константа в начале кода
+				ofn.lpstrFile = szFileName; // строка куда сохранится путь к файлу
+				ofn.nMaxFile = MAX_PATH; // Максимально возможная длина пути 256 байт
+				ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY; // флаги открытия файла
+				ofn.lpstrDefExt = "txt"; // разрешение по умолчанию с которым сохраняется файл
+
+				if (GetSaveFileName(&ofn)) // Если получилось открыть файл
+				{
+					//Происходит чето-там
+					strncpy_s(szPath, szFileName, sizeof(szPath) - 1);
+					HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+					SaveTextFileFromEdit(hEdit, szPath);
+				}
+			}
+
+		}
+		break;
+
+
+
+
+
 		case ID_FILE_SAVEAS:
 		{
 			OPENFILENAME ofn;  // создаем структуру 
@@ -238,14 +276,48 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (MessageBox(hwnd, "Вы действительно хотите закрыть окно?", "Вы уверены?", MB_YESNO | MB_ICONQUESTION) == IDYES)
 		{
 			//MessageBox(hwnd, szPath, "Test", MB_OK | MB_ICONINFORMATION);
-			GlobalFree(pszText);
+			//GlobalFree(pszText);
 			DestroyWindow(hwnd);
 		}
 	}
 		break;
 	case WM_DESTROY:
+		// Сранение последнего сохраненого текста с написаным
+	{
+
+
+
+		HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+		DWORD dwTextLength = GetWindowTextLength(hEdit);
+		if (dwTextLength > 0)
+		{
+			LPSTR pszEditText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
+
+			if ((pszEditText != NULL) && (pszText != NULL))
+			{
+				
+				if (GetWindowText(hEdit, pszEditText, dwTextLength + 1))
+				{
+					int i = strcmp(pszEditText, pszText);
+					//int i = 1;
+					if(!i) MessageBox(hwnd, "Сохранить изменения в файле?", "Возмущение", MB_OK | MB_ICONINFORMATION);
+
+					/*DWORD dwWritten;
+					if (WriteFile(hFile, pszEditText, dwTextLength, &dwWritten, NULL)) bSuccess = TRUE;*/
+				}
+
+			}
+			GlobalFree(pszEditText);
+		}
+
+
+
+
+
 		//MessageBox(hwnd, "От странные, лучше б дверь закрыли","Возмущение", MB_OK | MB_ICONINFORMATION);
+		GlobalFree(pszText);
 		PostQuitMessage(0);
+	}
 		break;
 	default: return DefWindowProc(hwnd, uMsg, wParam, lParam);
 
@@ -347,14 +419,17 @@ BOOL LoadTextFileToEdit(HWND hEdit, LPSTR pszFileName)
 		if (dwFileSize != 0xFFFFFFFF) // проверяем не привышает ли максимальный размер
 		{
 			LPSTR pszFileText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); // Выделяем память для чтения файла
-			pszText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); // Выделяем память для чтения файла
+
+			if (pszText) GlobalFree(pszText);
+			pszText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); 
+
 			if (pszFileText)
 			{
 				
 				DWORD dwRead;
 				if (ReadFile(hFile, pszFileText, dwFileSize, &dwRead, NULL))
 				{
-					//*PATH = *pszFileText;
+					
 					pszFileText[dwFileSize] = 0; // Ставим в конец 0
 					if (SetWindowText(hEdit, pszFileText)) bSuccess = TRUE;
 				}
@@ -376,15 +451,19 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName)
 		DWORD dwTextLength = GetWindowTextLength(hEdit);
 		if (dwTextLength > 0)
 		{
-			LPSTR pszText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
-			if (pszText != NULL)
+
+			if (pszText) GlobalFree(pszText);
+			pszText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
+
+			LPSTR pszEditText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
+			if (pszEditText != NULL)
 			{
-				if (GetWindowText(hEdit, pszText, dwTextLength + 1))
+				if (GetWindowText(hEdit, pszEditText, dwTextLength + 1))
 				{
 					DWORD dwWritten;
-					if (WriteFile(hFile, pszText, dwTextLength, &dwWritten, NULL)) bSuccess = TRUE;
+					if (WriteFile(hFile, pszEditText, dwTextLength, &dwWritten, NULL)) bSuccess = TRUE;
 				}
-				GlobalFree(pszText);
+				GlobalFree(pszEditText);
 			}
 		}
 		CloseHandle(hFile);
