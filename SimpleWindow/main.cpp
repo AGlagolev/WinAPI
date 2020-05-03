@@ -1,12 +1,17 @@
 #include <Windows.h>
 #include "resource.h"
 #include <string.h>
+#include <string>
 
 HWND hEdit1;
 HWND hEdit2;
 
 CHAR str1[80] = { 0 };
 CHAR str2[80] = { 0 };
+LPSTR pszText = NULL;
+CHAR szPath[MAX_PATH] = {};
+
+
 CONST CHAR szFilter[] = "Text files (*.txt)\0*.txt\0All files (*.*)\0*.*\0";
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -14,7 +19,6 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL LoadTextFileToEdit(HWND hwnd, LPSTR pszFileName);
 BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName);
-
 
 /***********************************WinMain**************************************************/
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
@@ -95,10 +99,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		hSubMenu = CreatePopupMenu();
 		AppendMenu(hSubMenu, MF_STRING, ID_FILE_NEW, "&New");
 		AppendMenu(hSubMenu, MF_STRING, ID_FILE_EXIT, "E&xit");
+		//AppendMenu(hSubMenu, C2_BLOCKSEPARATOR, SEPARATOR, "E&xit");
 		AppendMenu(hSubMenu, MF_STRING, ID_FILE_OPEN, "&Open");
 		AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVE, "&Save");
+		AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVEAS, "Sa&ve As");
 		AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&File");
-
+		
 		hSubMenu = CreatePopupMenu();
 		AppendMenu(hSubMenu, MF_STRING, ID_HELP_ABOUT, "&About");
 		AppendMenu(hSubMenu, MF_STRING, ID_HELP_ABOUT, "&User");
@@ -162,11 +168,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				//Происходит чето-там
 				HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
 				LoadTextFileToEdit(hEdit, szFileName);
+				//*szPath = *szFileName;
+				strncpy_s(szPath, szFileName, sizeof(szPath) - 1);
+				
 			}
 				
 		}
 			break;
-		case ID_FILE_SAVE:
+		case ID_FILE_SAVEAS:
 		{
 			OPENFILENAME ofn;  // создаем структуру 
 			CHAR szFileName[MAX_PATH] = {};
@@ -224,11 +233,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	break;
 	case WM_CLOSE:
-		
+	{
+		//CHAR c3 = PATH[255];
 		if (MessageBox(hwnd, "Вы действительно хотите закрыть окно?", "Вы уверены?", MB_YESNO | MB_ICONQUESTION) == IDYES)
 		{
+			//MessageBox(hwnd, szPath, "Test", MB_OK | MB_ICONINFORMATION);
+			GlobalFree(pszText);
 			DestroyWindow(hwnd);
 		}
+	}
 		break;
 	case WM_DESTROY:
 		//MessageBox(hwnd, "От странные, лучше б дверь закрыли","Возмущение", MB_OK | MB_ICONINFORMATION);
@@ -334,11 +347,14 @@ BOOL LoadTextFileToEdit(HWND hEdit, LPSTR pszFileName)
 		if (dwFileSize != 0xFFFFFFFF) // проверяем не привышает ли максимальный размер
 		{
 			LPSTR pszFileText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); // Выделяем память для чтения файла
+			pszText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); // Выделяем память для чтения файла
 			if (pszFileText)
 			{
+				
 				DWORD dwRead;
 				if (ReadFile(hFile, pszFileText, dwFileSize, &dwRead, NULL))
 				{
+					//*PATH = *pszFileText;
 					pszFileText[dwFileSize] = 0; // Ставим в конец 0
 					if (SetWindowText(hEdit, pszFileText)) bSuccess = TRUE;
 				}
