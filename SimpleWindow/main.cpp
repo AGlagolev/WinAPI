@@ -8,7 +8,7 @@ HWND hEdit2;
 
 CHAR str1[80] = { 0 };
 CHAR str2[80] = { 0 };
-LPSTR pszText = NULL;
+LPSTR lpszCurrentText = NULL;
 CHAR szPath[MAX_PATH] = {};
 
 
@@ -19,7 +19,7 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL LoadTextFileToEdit(HWND hwnd, LPSTR pszFileName);
 BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName);
-
+BOOL Compare(HWND hEdit);
 /***********************************WinMain**************************************************/
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -90,275 +90,236 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	case WM_CREATE:
-	// Creating menu
-	{
-		HMENU hMenu = CreateMenu();
-		HMENU hSubMenu;
-
-		hSubMenu = CreatePopupMenu();
-		AppendMenu(hSubMenu, MF_STRING, ID_FILE_NEW, "&New");
-		AppendMenu(hSubMenu, MF_STRING, ID_FILE_EXIT, "E&xit");
-		//AppendMenu(hSubMenu, C2_BLOCKSEPARATOR, SEPARATOR, "E&xit");
-		AppendMenu(hSubMenu, MF_STRING, ID_FILE_OPEN, "&Open");
-		AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVE, "&Save");
-		AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVEAS, "Sa&ve As");
-		AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&File");
-		
-		hSubMenu = CreatePopupMenu();
-		AppendMenu(hSubMenu, MF_STRING, ID_HELP_ABOUT, "&About");
-		AppendMenu(hSubMenu, MF_STRING, ID_HELP_ABOUT, "&User");
-		AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&Help");
-		SetMenu(hwnd, hMenu);
-
-		//Adding icons
-		HICON hIcon = (HICON)LoadImage(NULL, "Document.ico", IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
-		SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-		
-		RECT rect;
-		GetClientRect(hwnd, &rect);
-
-
-		//Text editor:
-		HWND hEdit = CreateWindowEx(
-			WS_EX_CLIENTEDGE, "Edit", "",
-			WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL,
-			0, 0, rect.right, rect.bottom,
-			hwnd,
-		    (HMENU)IDC_MAIN_EDIT,
-			GetModuleHandle(NULL),
-			NULL
-		);
-		
-	}
-	break;
-	case WM_SIZE:
-	{
-		RECT rcClient;
-		GetClientRect(hwnd, &rcClient);
-		HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
-		SetWindowPos(hEdit, NULL, 0, 0, rcClient.right, rcClient.bottom,SWP_NOZORDER);
-
-	}
-
-	case WM_COMMAND:
-	{
-		switch (LOWORD(wParam)) // LOWORD содержит ID сообщения
+		case WM_CREATE:
+		// Creating menu
 		{
+			HMENU hMenu = CreateMenu();
+			HMENU hSubMenu = CreatePopupMenu();
 
-		case ID_FILE_OPEN:
-		{
-			//создадим стандартное окно открытия /сохранения файла:
-			OPENFILENAME ofn;  // создаем структуру 
-			CHAR szFileName[MAX_PATH] = {}; 
+			AppendMenu(hSubMenu, MF_STRING, ID_FILE_NEW, "&New");
+			AppendMenu(hSubMenu, MF_STRING, ID_FILE_EXIT, "E&xit");
+			//AppendMenu(hSubMenu, C2_BLOCKSEPARATOR, SEPARATOR, "E&xit");
+			AppendMenu(hSubMenu, MF_STRING, ID_FILE_OPEN, "&Open");
+			AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVE, "&Save");
+			AppendMenu(hSubMenu, MF_STRING, ID_FILE_SAVEAS, "Sa&ve As");
+			AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&File");
+		
+			hSubMenu = CreatePopupMenu();
+			AppendMenu(hSubMenu, MF_STRING, ID_HELP_ABOUT, "&About");
+			AppendMenu(hSubMenu, MF_STRING, ID_HELP_ABOUT, "&User");
+			AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&Help");
+			SetMenu(hwnd, hMenu);
 
-			ZeroMemory(&ofn, sizeof(ofn)); // зануление полей структуры
+			//Adding icons
+			HICON hIcon = (HICON)LoadImage(NULL, "Document.ico", IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+			SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+		
+			RECT rect;
+			GetClientRect(hwnd, &rect);
 
-			// Заполняем поля структуры
-			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = hwnd; // определитель родительского объекта
-			ofn.lpstrFilter = szFilter; // константа в начале кода
-			ofn.lpstrFile = szFileName; // строка куда сохранится путь к файлу
-			ofn.nMaxFile = MAX_PATH; // Максимально возможная длина пути 256 байт
-			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY; // флаги открытия файла
-			ofn.lpstrDefExt = "txt"; // разрешение по умолчанию с которым сохраняется файл
-			
-			if (GetOpenFileName(&ofn)) // Если получилось открыть файл
-			{
-				//Происходит чето-там
-				HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
-				LoadTextFileToEdit(hEdit, szFileName);
-				strncpy_s(szPath, szFileName, sizeof(szPath) - 1);				
-			}
-				
+
+			//Text editor:
+			HWND hEdit = CreateWindowEx(
+				WS_EX_CLIENTEDGE, "Edit", "",
+				WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL,
+				0, 0, rect.right, rect.bottom,
+				hwnd,
+				(HMENU)IDC_MAIN_EDIT,
+				GetModuleHandle(NULL),
+				NULL
+			);
+		
 		}
-			break;
-		case ID_FILE_SAVE:
+		break;
+
+		case WM_SIZE:
 		{
-		    if(szPath[0]!='\0')
+			RECT rcClient;
+			GetClientRect(hwnd, &rcClient);
+			HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+			SetWindowPos(hEdit, NULL, 0, 0, rcClient.right, rcClient.bottom,SWP_NOZORDER);
+		}
+		break;
+
+		case WM_COMMAND:
+		{
+			switch (LOWORD(wParam)) // LOWORD содержит ID сообщения
 			{
-				//Происходит чето-там
-				HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
-				SaveTextFileFromEdit(hEdit, szPath);
-			}
-			else
-			{
-				OPENFILENAME ofn;  // создаем структуру 
-				CHAR szFileName[MAX_PATH] = {};
-
-				ZeroMemory(&ofn, sizeof(ofn)); // зануление полей структуры
-
-				// Заполняем поля структуры
-				ofn.lStructSize = sizeof(ofn);
-				ofn.hwndOwner = hwnd; // определитель родительского объекта
-				ofn.lpstrFilter = szFilter; // константа в начале кода
-				ofn.lpstrFile = szFileName; // строка куда сохранится путь к файлу
-				ofn.nMaxFile = MAX_PATH; // Максимально возможная длина пути 256 байт
-				ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY; // флаги открытия файла
-				ofn.lpstrDefExt = "txt"; // разрешение по умолчанию с которым сохраняется файл
-
-				if (GetSaveFileName(&ofn)) // Если получилось открыть файл
+				case ID_FILE_OPEN:
 				{
-					//Происходит чето-там
-					strncpy_s(szPath, szFileName, sizeof(szPath) - 1);
-					HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
-					SaveTextFileFromEdit(hEdit, szPath);
-				}
-			}
+					//создадим стандартное окно открытия /сохранения файла:
+					OPENFILENAME ofn;  // создаем структуру 
+					CHAR szFileName[MAX_PATH] = {}; 
 
-		}
-		break;
+					ZeroMemory(&ofn, sizeof(ofn)); // зануление полей структуры
 
-
-
-
-
-		case ID_FILE_SAVEAS:
-		{
-			OPENFILENAME ofn;  // создаем структуру 
-			CHAR szFileName[MAX_PATH] = {};
-
-			ZeroMemory(&ofn, sizeof(ofn)); // зануление полей структуры
-
-			// Заполняем поля структуры
-			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = hwnd; // определитель родительского объекта
-			ofn.lpstrFilter = szFilter; // константа в начале кода
-			ofn.lpstrFile = szFileName; // строка куда сохранится путь к файлу
-			ofn.nMaxFile = MAX_PATH; // Максимально возможная длина пути 256 байт
-			ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST|OFN_OVERWRITEPROMPT|OFN_HIDEREADONLY; // флаги открытия файла
-			ofn.lpstrDefExt = "txt"; // разрешение по умолчанию с которым сохраняется файл
-
-			if (GetSaveFileName(&ofn)) // Если получилось открыть файл
-			{
-				//Происходит чето-там
-				HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
-				SaveTextFileFromEdit(hEdit, szFileName);
-			}
-
-		}
-			break;
-		case ID_FILE_EXIT:
-			DestroyWindow(hwnd);
-			break;
-
-		case ID_HELP_ABOUT:
-		{
+					// Заполняем поля структуры
+					ofn.lStructSize = sizeof(ofn);
+					ofn.hwndOwner = hwnd; // определитель родительского объекта
+					ofn.lpstrFilter = szFilter; // константа в начале кода
+					ofn.lpstrFile = szFileName; // строка куда сохранится путь к файлу
+					ofn.nMaxFile = MAX_PATH; // Максимально возможная длина пути 256 байт
+					ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY; // флаги открытия файла
+					ofn.lpstrDefExt = "txt"; // разрешение по умолчанию с которым сохраняется файл
 			
-			DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd, DlgProc, 0);	
-		
-		}
-			break;
-		case ID_HELP_USER:
-		{
-			
-			//int ret = DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd,DlgProc);
-			switch (DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_USER), hwnd, DlgUsrProc))
-			{
-			case IDOK: MessageBox(hwnd, "Dialog ended with OK!", "Info", MB_OK | MB_ICONINFORMATION); break;
-			case IDCANCEL: MessageBox(hwnd, "Dialog ended with CANCEL!", "Info", MB_OK | MB_ICONINFORMATION); break;
-			case -1: MessageBox(hwnd, "Dialog eFailed!", "Error", MB_OK | MB_ICONERROR); break;
-			}
-
-		}
-		break;
-		case ID_F1:
-			MessageBox(hwnd, "Use key F1!", "Info", MB_OK | MB_ICONINFORMATION);
-			DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd, DlgProc, 0);
-			break;
-		}
-	
-	}
-	break;
-	case WM_CLOSE:
-	{
-		//CHAR c3 = PATH[255];
-		if (MessageBox(hwnd, "Вы действительно хотите закрыть окно?", "Вы уверены?", MB_YESNO | MB_ICONQUESTION) == IDYES)
-		{
-			//MessageBox(hwnd, szPath, "Test", MB_OK | MB_ICONINFORMATION);
-			//GlobalFree(pszText);
-			DestroyWindow(hwnd);
-		}
-	}
-		break;
-	case WM_DESTROY:
-		// Сранение последнего сохраненого текста с написаным
-	{
-
-
-
-		HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
-		DWORD dwTextLength = GetWindowTextLength(hEdit);
-		if (dwTextLength > 0)
-		{
-			LPSTR pszEditText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
-
-			if ((pszEditText != NULL) && (pszText != NULL))
-			{
+					if (GetOpenFileName(&ofn)) // Если получилось открыть файл
+					{
+						//Происходит чето-там
+						HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+						LoadTextFileToEdit(hEdit, szFileName);
+						strncpy_s(szPath, szFileName, sizeof(szPath) - 1);				
+					}
 				
-				if (GetWindowText(hEdit, pszEditText, dwTextLength + 1))
-				{
-					int i = strcmp(pszEditText, pszText);
-					//int i = 1;
-					if(!i) MessageBox(hwnd, "Сохранить изменения в файле?", "Возмущение", MB_OK | MB_ICONINFORMATION);
-
-					/*DWORD dwWritten;
-					if (WriteFile(hFile, pszEditText, dwTextLength, &dwWritten, NULL)) bSuccess = TRUE;*/
 				}
+				break;
+				case ID_FILE_SAVE:
+				{
+					if(szPath[0]!='\0')
+					{
+							//Происходит чето-там
+							HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+							SaveTextFileFromEdit(hEdit, szPath);
+					}
+					else
+					{				
+						SendMessage(hwnd, WM_COMMAND,(WPARAM)ID_FILE_SAVEAS, 0);
+					}
 
-			}
-			GlobalFree(pszEditText);
+				}
+				break;
+				case ID_FILE_SAVEAS:
+				{
+					OPENFILENAME ofn;  // создаем структуру 
+					CHAR szFileName[MAX_PATH] = {};
+
+					ZeroMemory(&ofn, sizeof(ofn)); // зануление полей структуры
+
+					// Заполняем поля структуры
+					ofn.lStructSize = sizeof(ofn);
+					ofn.hwndOwner = hwnd; // определитель родительского объекта
+					ofn.lpstrFilter = szFilter; // константа в начале кода
+					ofn.lpstrFile = szFileName; // строка куда сохранится путь к файлу
+					ofn.nMaxFile = MAX_PATH; // Максимально возможная длина пути 256 байт
+					ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST|OFN_OVERWRITEPROMPT|OFN_HIDEREADONLY; // флаги открытия файла
+					ofn.lpstrDefExt = "txt"; // разрешение по умолчанию с которым сохраняется файл
+
+					if (GetSaveFileName(&ofn)) // Если получилось открыть файл
+					{
+						//Происходит чето-там
+						HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+						SaveTextFileFromEdit(hEdit, szFileName);
+						strncpy_s(szPath, szFileName, sizeof(szPath) - 1);
+					}
+				}
+				break;
+				case ID_FILE_EXIT:
+				{
+					SendMessage(hwnd,WM_COMMAND,WM_CLOSE,0);
+				}
+				break;
+				case ID_HELP_ABOUT:
+				{			
+					DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd, DlgProc, 0);			
+				}
+				break;
+				case ID_HELP_USER:
+				{			
+					switch (DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_USER), hwnd, DlgUsrProc))
+					{
+					 case IDOK: MessageBox(hwnd, "Dialog ended with OK!", "Info", MB_OK | MB_ICONINFORMATION); break;
+					 case IDCANCEL: MessageBox(hwnd, "Dialog ended with CANCEL!", "Info", MB_OK | MB_ICONINFORMATION); break;
+					 case -1: MessageBox(hwnd, "Dialog eFailed!", "Error", MB_OK | MB_ICONERROR); break;
+					}
+				}
+				break;
+				case ID_F1:
+				{
+					MessageBox(hwnd, "Use key F1!", "Info", MB_OK | MB_ICONINFORMATION);
+					DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_ABOUT), hwnd, DlgProc, 0);
+				}
+				break;
+			}	
 		}
-
-
-
-
-
-		//MessageBox(hwnd, "От странные, лучше б дверь закрыли","Возмущение", MB_OK | MB_ICONINFORMATION);
-		GlobalFree(pszText);
-		PostQuitMessage(0);
-	}
 		break;
-	default: return DefWindowProc(hwnd, uMsg, wParam, lParam);
+		case WM_CLOSE:
+		{
+			BOOL DontClose = FALSE; 			
+			{
+				HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+				if (!Compare(hEdit))
+				{
 
+					switch (MessageBox(hwnd, "Сохранить изменения в файле?", " Вопрос ", MB_YESNOCANCEL | MB_ICONQUESTION))
+					{
+						case IDYES:
+						{
+							SendMessage(hwnd,WM_COMMAND, ID_FILE_SAVE,0);
+							//SendMessage(hwnd, WM_DESTROY,0,0);
+						}
+						//break;
+						case IDNO:
+						{
+							SendMessage(hwnd, WM_DESTROY, 0, 0);
+						}
+						break;
+						case IDCANCEL:
+						{
+							DontClose = TRUE;
+							break;
+						}
+						
+					}
+				}
+				if(!DontClose) DestroyWindow(hwnd);
+			}
+		}
+			break;
+		case WM_DESTROY:
+			
+		{
+		
+			GlobalFree(lpszCurrentText);
+			PostQuitMessage(0);
+		}
+			break;
+		default: return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 	return 0;
 }
 /******************************************   DlgProc   ********************************************************************************/
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-
 	switch (uMsg)
 	{
-	case WM_INITDIALOG:
-	{
-
-	}
-	break;
-	case WM_COMMAND:
-	{
-		switch (LOWORD(wParam))
+		case WM_INITDIALOG:
 		{
 
-		case IDOK:
+		}
+		break;
+		case WM_COMMAND:
 		{
-			EndDialog(hwnd, IDOK);
-			break;
-		}
-		case IDCANCEL:
-		{
-			EndDialog(hwnd, IDCANCEL);
-			break;
-		}
-		}
-	}
-	break;
-	case WM_CLOSE:
-	{
+			switch (LOWORD(wParam))
+			{
 	
-	}
-	break;
-	default: return FALSE;
+				case IDOK:
+				{
+					EndDialog(hwnd, IDOK);
+					break;
+				}
+				case IDCANCEL:
+				{
+					EndDialog(hwnd, IDCANCEL);
+					break;
+				}
+			}
+		}
+		break;
+		case WM_CLOSE:
+		{
+	
+		}
+		break;
+		default: return FALSE;
 	}
 	return TRUE;
 }
@@ -367,44 +328,46 @@ BOOL CALLBACK DlgUsrProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	case WM_INITDIALOG:
-	{
-		hEdit1 = GetDlgItem(hwnd, IDC_EDIT1);
-		hEdit2 = GetDlgItem(hwnd, IDC_EDIT2);
-		SendMessage(hEdit1, WM_SETTEXT, 0, (LPARAM)str1);
-		SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str1);
-	}
-	break;
-	case WM_COMMAND:
-	{
-		switch (LOWORD(wParam))
+		case WM_INITDIALOG:
 		{
+			hEdit1 = GetDlgItem(hwnd, IDC_EDIT1);
+			hEdit2 = GetDlgItem(hwnd, IDC_EDIT2);
+			SendMessage(hEdit1, WM_SETTEXT, 0, (LPARAM)str1);
+			SendMessage(hEdit2, WM_SETTEXT, 0, (LPARAM)str1);
+		}
+		break;
+		case WM_COMMAND:
+		{
+			switch (LOWORD(wParam))
+			{
 
-		case IDOK:
-		{
-			SendMessage(hEdit1, WM_GETTEXT, 255, (LPARAM)str1);
-			SendMessage(hEdit2, WM_GETTEXT, 255, (LPARAM)str2);
+				case IDOK:
+				{
+					SendMessage(hEdit1, WM_GETTEXT, 255, (LPARAM)str1);
+					SendMessage(hEdit2, WM_GETTEXT, 255, (LPARAM)str2);
 						
-			strcat_s(str1, " ");
-			strcat_s(str1,str2);
-			EndDialog(hwnd, IDOK);
-			MessageBox(hwnd, str1, "Вы ввели", MB_YESNO | MB_ICONQUESTION);
-			break;
+					strcat_s(str1, " ");
+					strcat_s(str1,str2);
+					EndDialog(hwnd, IDOK);
+					MessageBox(hwnd, str1, "Вы ввели", MB_YESNO | MB_ICONQUESTION);
+				
+				}
+				break;
+
+				case IDCANCEL:
+				{
+					EndDialog(hwnd, IDCANCEL);					
+				}
+				break;
+			}
 		}
-		case IDCANCEL:
+		break;
+		case WM_CLOSE:
 		{
-			EndDialog(hwnd, IDCANCEL);
-			break;
+			EndDialog(hwnd,NULL);
 		}
-		}
-	}
-	break;
-	case WM_CLOSE:
-	{
-		EndDialog(hwnd,NULL);
-	}
-	break;
-	default: return FALSE;
+		break;
+		default: return FALSE;
 	}
 	return TRUE;
 }
@@ -419,29 +382,28 @@ BOOL LoadTextFileToEdit(HWND hEdit, LPSTR pszFileName)
 		if (dwFileSize != 0xFFFFFFFF) // проверяем не привышает ли максимальный размер
 		{
 			LPSTR pszFileText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); // Выделяем память для чтения файла
-
-			if (pszText) GlobalFree(pszText);
-			pszText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); 
+			
+			if (lpszCurrentText) GlobalFree(lpszCurrentText);
+			lpszCurrentText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); 
 
 			if (pszFileText)
 			{
 				
 				DWORD dwRead;
 				if (ReadFile(hFile, pszFileText, dwFileSize, &dwRead, NULL))
-				{
-					
+				{					
+					strcpy_s(lpszCurrentText, dwFileSize+1,pszFileText);
 					pszFileText[dwFileSize] = 0; // Ставим в конец 0
 					if (SetWindowText(hEdit, pszFileText)) bSuccess = TRUE;
 				}
 				GlobalFree(pszFileText);
-
 			}
 		}
 		CloseHandle(hFile);
 	}
 	return bSuccess;
 }
-/******************************************* SaveTextFileFromEdit   ********************************************************************/
+/*******************************************     SaveTextFileFromEdit   ****************************************************************/
 BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName)
 {
 	BOOL bSuccess = FALSE;
@@ -452,8 +414,9 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName)
 		if (dwTextLength > 0)
 		{
 
-			if (pszText) GlobalFree(pszText);
-			pszText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
+			if (lpszCurrentText) GlobalFree(lpszCurrentText);
+			lpszCurrentText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
+			GetWindowText(hEdit, lpszCurrentText, dwTextLength + 1);
 
 			LPSTR pszEditText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
 			if (pszEditText != NULL)
@@ -462,6 +425,7 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName)
 				{
 					DWORD dwWritten;
 					if (WriteFile(hFile, pszEditText, dwTextLength, &dwWritten, NULL)) bSuccess = TRUE;
+					strcpy_s(lpszCurrentText, dwTextLength + 1, pszEditText);
 				}
 				GlobalFree(pszEditText);
 			}
@@ -469,4 +433,31 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName)
 		CloseHandle(hFile);
 	}
 	return bSuccess;
+}
+/*******************************************   Compare   ******************************************************************************/
+BOOL Compare(HWND hEdit)
+{
+	// Сранение последнего сохраненого текста с написаным
+	BOOL boolanswer = TRUE;
+	DWORD dwTextLength = GetWindowTextLength(hEdit);
+	LPSTR lpszEditText = (LPSTR)GlobalAlloc(GPTR, dwTextLength + 1);
+
+		
+		if (lpszCurrentText!= NULL)
+		{
+			if (GetWindowText(hEdit, lpszEditText, dwTextLength + 1))
+			{							
+				if (strcmp(lpszCurrentText,lpszEditText)) boolanswer = FALSE;				
+			}			
+		}
+		else
+		{
+			if (dwTextLength > 0) // Если поле текста не пусто но файл не подгружался все равно предлагаем сохранение
+			{
+				boolanswer = FALSE;
+			}
+		}
+		GlobalFree(lpszEditText);
+	
+	return boolanswer;
 }
