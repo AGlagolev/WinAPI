@@ -54,7 +54,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 
 	HWND hwnd = CreateWindowEx
 	(
-		WS_EX_CLIENTEDGE,
+		WS_EX_CLIENTEDGE | WS_EX_ACCEPTFILES,
 		SZ_CLASS_NAME,
 		"Title of my Window",
 		WS_OVERLAPPEDWINDOW,
@@ -88,6 +88,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 /******************************************   WndProc   ********************************************************************************/
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	
 	switch (uMsg)
 	{
 		case WM_CREATE:
@@ -128,7 +129,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				GetModuleHandle(NULL),
 				NULL
 			);
-		
+			
 		}
 		break;
 
@@ -239,6 +240,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 			}	
+		}
+		break;
+		case WM_DROPFILES:
+		{		
+			//Поиск пути к переташеному файлу
+			int SizeDragFile = DragQueryFile((HDROP)wParam, 0, NULL, 0);
+			char* PachToFile = new char[SizeDragFile + 1];
+			DragQueryFile((HDROP)wParam, 0, PachToFile, SizeDragFile + 1);
+			PachToFile[SizeDragFile] = '\0';			
+			DragFinish((HDROP)wParam);	
+
+			//Открытие файла в редакторе
+			strncpy_s(szPath, PachToFile, sizeof(szPath) - 1); 			
+			HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+			LoadTextFileToEdit(hEdit, szPath);
 		}
 		break;
 		case WM_CLOSE:
