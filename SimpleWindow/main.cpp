@@ -125,6 +125,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
 	}
 	
 
+
+
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
 
