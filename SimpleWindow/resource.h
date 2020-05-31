@@ -10,6 +10,12 @@
 #define IDR_ACCELERATOR1                110
 #define IDR_MENU2                       111
 #define IDC_MAIN_EDIT                   111
+
+#define HOTKEY_NEW						201
+#define HOTKEY_OPEN						202
+#define HOTKEY_SAVE						203
+#define HOTKEY_SAVEAS					204
+
 #define IDC_EDIT1                       1001
 #define IDC_EDIT2                       1002
 #define ID_HELP_ABOUT                   40001

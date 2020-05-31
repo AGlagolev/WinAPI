@@ -23,7 +23,7 @@ BOOL Compare(HWND hEdit);
 VOID DoFileSaveAS(HWND hwnd);
 BOOL __stdcall DoFileOpen(HWND hwnd);
 VOID DoFileSave(HWND hwnd);
-
+VOID SetWindowsTitle(HWND hEdit);
 
 
 VOID  WatchChanges(HWND hwnd, BOOL(__stdcall *Action)(HWND))
@@ -204,7 +204,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				LoadTextFileToEdit(hEdit, szPath);
 			}
 			
+			//Регестрация горячих клавиш без акселератора(в resourse.h внесены ресурсы 201,202,203)
+			RegisterHotKey(hwnd,HOTKEY_NEW,MOD_CONTROL/*Зажатый CTRL*/, 'N'/*Название клавиши в сочетании с CTRL*/);
+			RegisterHotKey(hwnd,HOTKEY_OPEN,MOD_CONTROL/*Зажатый CTRL*/, 'O'/*Название клавиши в сочетании с CTRL*/);
+			RegisterHotKey(hwnd,HOTKEY_SAVE,MOD_CONTROL/*Зажатый CTRL*/, 'S'/*Название клавиши в сочетании с CTRL*/);
+			RegisterHotKey(hwnd, HOTKEY_SAVEAS, MOD_CONTROL + MOD_ALT/*Зажатый CTRL+ALT*/, 'S'/*Название клавиши в сочетании с CTRL+ALT*/);
 		}
+		
+
 		break;
 
 		case WM_SIZE:
@@ -213,6 +220,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			GetClientRect(hwnd, &rcClient);
 			HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
 			SetWindowPos(hEdit, NULL, 0, 0, rcClient.right, rcClient.bottom,SWP_NOZORDER);
+		}
+		break;
+
+
+		//Вхождение в горячие клавиши
+		case WM_HOTKEY:
+		{
+			switch (wParam)
+			{
+			case HOTKEY_NEW:SendMessage(hwnd, WM_COMMAND, ID_FILE_NEW, 0); break;
+			case HOTKEY_OPEN:SendMessage(hwnd,WM_COMMAND,ID_FILE_OPEN,0); break;
+			case HOTKEY_SAVE:SendMessage(hwnd,WM_COMMAND,ID_FILE_SAVE,0); break;
+			case HOTKEY_SAVEAS:SendMessage(hwnd,WM_COMMAND,ID_FILE_SAVEAS,0); break;
+			}
 		}
 		break;
 
@@ -517,7 +538,13 @@ BOOL LoadTextFileToEdit(HWND hEdit, LPSTR pszFileName)
 					//MessageBox(hEdit, "5", "Info", MB_OK | MB_ICONINFORMATION);
 					strcpy_s(lpszCurrentText, dwFileSize+1,pszFileText);
 					pszFileText[dwFileSize] = 0; // Ставим в конец 0
-					if (SetWindowText(hEdit, pszFileText)) bSuccess = TRUE;
+					if (SetWindowText(hEdit, pszFileText))
+					{
+						
+						bSuccess = TRUE;
+						//Передача  названия открытого файла в заголовок основного окна
+						SetWindowsTitle(hEdit);
+					}
 				}
 				GlobalFree(pszFileText);
 			}
@@ -549,6 +576,7 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName)
 					DWORD dwWritten;
 					if (WriteFile(hFile, pszEditText, dwTextLength, &dwWritten, NULL)) bSuccess = TRUE;
 					strcpy_s(lpszCurrentText, dwTextLength + 1, pszEditText);
+					SetWindowsTitle(hEdit);
 				}
 				GlobalFree(pszEditText);
 			}
@@ -653,4 +681,13 @@ VOID DoFileSave(HWND hwnd)
 		SendMessage(hwnd, WM_COMMAND, (WPARAM)ID_FILE_SAVEAS, 0);
 	}
 
+}
+
+VOID SetWindowsTitle(HWND hEdit)
+{
+	HWND hwndParent = GetParent(hEdit);
+	CHAR szTitle[MAX_PATH] = "SimpleWindowEdit - ";
+	LPSTR lpszNameOnly = strrchr(szPath, '\\') + 1;
+	strcat_s(szTitle, MAX_PATH, lpszNameOnly);
+	SetWindowText(hwndParent, szTitle);
 }
