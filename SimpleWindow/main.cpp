@@ -2,6 +2,8 @@
 #include "resource.h"
 #include <string.h>
 #include <string>
+//Для установки панели инструментов впроект в свойствах проекта ->linker -> Input -> Additional Dependensive добавляем comctl32.lib;
+#include<CommCtrl.h> // Добавляется только при выполненнии условий предведущей строки
 
 HWND hEdit1;
 HWND hEdit2;
@@ -10,7 +12,7 @@ CHAR str1[80] = { 0 };
 CHAR str2[80] = { 0 };
 LPSTR lpszCurrentText = NULL;
 CHAR szPath[MAX_PATH] = {};
-
+CHAR szSize[256] = {};
 
 CONST CHAR szFilter[] = "Text files (*.txt)\0*.txt\0All files (*.*)\0*.*\0";
 
@@ -22,9 +24,14 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR pszFileName);
 BOOL Compare(HWND hEdit);
 VOID DoFileSaveAS(HWND hwnd);
 BOOL __stdcall DoFileOpen(HWND hwnd);
-VOID DoFileSave(HWND hwnd);
+BOOL __stdcall DoFileSave(HWND hwnd);
 VOID SetWindowsTitle(HWND hEdit);
-
+BOOL __stdcall DoFileNew(HWND hwnd)
+{
+	HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+	SetWindowText(hEdit, "");
+	return 0;
+}
 
 VOID  WatchChanges(HWND hwnd, BOOL(__stdcall *Action)(HWND))
 {
@@ -209,6 +216,72 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			RegisterHotKey(hwnd,HOTKEY_OPEN,MOD_CONTROL/*Зажатый CTRL*/, 'O'/*Название клавиши в сочетании с CTRL*/);
 			RegisterHotKey(hwnd,HOTKEY_SAVE,MOD_CONTROL/*Зажатый CTRL*/, 'S'/*Название клавиши в сочетании с CTRL*/);
 			RegisterHotKey(hwnd, HOTKEY_SAVEAS, MOD_CONTROL + MOD_ALT/*Зажатый CTRL+ALT*/, 'S'/*Название клавиши в сочетании с CTRL+ALT*/);
+
+
+
+			// Создание панели управления (в resourse.h внесен ресурс 112)
+			HWND hTool = CreateWindowEx
+			(
+				0,
+				TOOLBARCLASSNAME,
+				NULL,
+				WS_CHILD | WS_VISIBLE,
+				0, 0,
+				0, 0,
+				hwnd,
+				(HMENU)IDC_MAIN_TOOL,
+				GetModuleHandle(NULL),
+				NULL
+			);
+			SendMessage(hTool, TB_BUTTONSTRUCTSIZE,(WPARAM)sizeof(TBBUTTON),0);
+			// Кнопки панели инстр.
+			TBBUTTON tbb[3]; //Три кнопки
+			TBADDBITMAP tbab;
+			tbab.hInst = HINST_COMMCTRL;
+			tbab.nID = IDB_STD_SMALL_COLOR;
+			SendMessage(hTool, TB_ADDBITMAP, 0, (LPARAM)&tbab);
+			ZeroMemory(&tbb,sizeof(tbb));
+
+			tbb[0].iBitmap = STD_FILENEW;
+			tbb[0].fsState = TBSTATE_ENABLED;
+			tbb[0].fsStyle = TBSTYLE_BUTTON;
+			tbb[0].idCommand = ID_FILE_NEW;
+
+			tbb[1].iBitmap = STD_FILEOPEN;
+			tbb[1].fsState = TBSTATE_ENABLED;
+			tbb[1].fsStyle = TBSTYLE_BUTTON;
+			tbb[1].idCommand = ID_FILE_OPEN;
+
+			tbb[2].iBitmap = STD_FILESAVE;
+			tbb[2].fsState = TBSTATE_ENABLED;
+			tbb[2].fsStyle = TBSTYLE_BUTTON;
+			tbb[2].idCommand = ID_FILE_SAVE;
+
+			SendMessage(hTool, TB_ADDBUTTONS, sizeof(tbb)/sizeof(TBBUTTON),(LPARAM)&tbb);
+
+
+
+			//////////////////////// StatusBar ////////////////////////////////////////////////
+			HWND hStatus = CreateWindowEx
+			(
+				0,
+				STATUSCLASSNAME,
+				NULL,
+				WS_CHILD | WS_VISIBLE | SBARS_SIZEGRIP,
+				0,0,
+				0,0,
+				hwnd,
+				(HMENU)IDC_MAIN_STATUS,
+				GetModuleHandle(NULL),
+				NULL
+			);
+
+			// разделител и status bar
+			int statwidth[] = {150, 250, -1};
+			SendMessage(hStatus, SB_SETPARTS, sizeof(statwidth)/ sizeof(int), (LPARAM)statwidth);
+			/*SendMessage(hStatus, SB_SETTEXT,0, (LPARAM)"This is the status bar...");
+			SendMessage(hStatus, SB_SETTEXT,3, (LPARAM)szPath);*/
+
 		}
 		
 
@@ -216,10 +289,30 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case WM_SIZE:
 		{
+			HWND hTool = GetDlgItem(hwnd, IDC_MAIN_TOOL);
+			SendMessage(hTool, TB_AUTOSIZE, 0, 0);
+			RECT rcTool;
+			GetWindowRect(hTool, &rcTool);
+			int iToolHeight = rcTool.bottom - rcTool.top;
+			
+			
+
+			/*RECT rcClient;
+			GetClientRect(hwnd, &rcClient);
+			HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
+			SetWindowPos(hEdit, NULL, 0, 0, rcClient.right, rcClient.bottom,SWP_NOZORDER);*/
+
+			HWND hStatus = GetDlgItem(hwnd, IDC_MAIN_STATUS);
+			SendMessage(hStatus, WM_SIZE, 0, 0);
+			RECT rcStatus;
+			GetWindowRect(hStatus,&rcStatus);
+			int iStatusHeight = rcStatus.bottom - rcStatus.top;
+
 			RECT rcClient;
 			GetClientRect(hwnd, &rcClient);
 			HWND hEdit = GetDlgItem(hwnd, IDC_MAIN_EDIT);
-			SetWindowPos(hEdit, NULL, 0, 0, rcClient.right, rcClient.bottom,SWP_NOZORDER);
+			int iEditHeight = rcClient.bottom - iToolHeight - iStatusHeight;
+			SetWindowPos(hEdit, NULL, 0, iToolHeight, rcClient.right, iEditHeight, SWP_NOZORDER);
 		}
 		break;
 
@@ -241,6 +334,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			switch (LOWORD(wParam)) // LOWORD содержит ID сообщения
 			{
+				case ID_FILE_NEW:
+				{					
+					WatchChanges(hwnd, DoFileNew);
+				}
+				break;
+
 				case ID_FILE_OPEN:
 				{
 					//if (szPath[0] != '\0')
@@ -277,6 +376,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				
 				}
 				break;
+				
 				case ID_FILE_SAVE:
 				{
 
@@ -354,6 +454,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}	
 		}
 		break;
+		/*case WM_KEYDOWN:
+		{
+			switch (wParam)
+			{
+			default:
+				MessageBox(hwnd, "Use key F1!", "Info", MB_OK | MB_ICONINFORMATION);
+					break;
+			}
+			
+		}
+		break;*/
 		case WM_DROPFILES:
 		{		
 			//Поиск пути к переташеному файлу
@@ -449,8 +560,18 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					EndDialog(hwnd, IDCANCEL);
 					break;
 				}
+
 			}
 		}
+		/*case WM_KEYDOWN:
+		{
+			switch (wParam)
+			{
+			default:
+				MessageBox(hwnd, "Use key F1!", "Info", MB_OK | MB_ICONINFORMATION);
+				break;
+			}
+		}*/
 		break;
 		case WM_CLOSE:
 		{
@@ -522,6 +643,7 @@ BOOL LoadTextFileToEdit(HWND hEdit, LPSTR pszFileName)
 		DWORD dwFileSize = GetFileSize(hFile, NULL);
 		if (dwFileSize != 0xFFFFFFFF) // проверяем не привышает ли максимальный размер
 		{
+			
 			//MessageBox(hEdit, "3", "Info", MB_OK | MB_ICONINFORMATION);
 			LPSTR pszFileText = (LPSTR)GlobalAlloc(GPTR, dwFileSize + 1); // Выделяем память для чтения файла
 			
@@ -544,6 +666,19 @@ BOOL LoadTextFileToEdit(HWND hEdit, LPSTR pszFileName)
 						bSuccess = TRUE;
 						//Передача  названия открытого файла в заголовок основного окна
 						SetWindowsTitle(hEdit);
+						HWND hStatus = GetDlgItem(GetParent(hEdit), IDC_MAIN_STATUS);
+						
+						//unsigned char bytes[sizeof(DWORD)];
+						//memcpy(bytes, &dwFileSize, sizeof bytes);
+						sprintf_s(szSize, 256, "%d", dwFileSize);
+						
+						int a = strlen(szSize);						
+						szSize[a] = 'B';
+						szSize[a +1] = '\0';
+
+						SendMessage(hStatus, SB_SETTEXT, 0, (LPARAM)"This is the status bar...");
+						SendMessage(hStatus, SB_SETTEXT, 1, (LPARAM)szSize);
+						SendMessage(hStatus, SB_SETTEXT, 2, (LPARAM)szPath);
 					}
 				}
 				GlobalFree(pszFileText);
@@ -668,7 +803,7 @@ BOOL __stdcall DoFileOpen(HWND hwnd)
 	return FALSE;
 }
 /*******************************************   DoFileSave  ******************************************************************************/
-VOID DoFileSave(HWND hwnd)
+BOOL __stdcall DoFileSave(HWND hwnd)
 {
 	if (szPath[0] != '\0')
 	{
@@ -680,6 +815,7 @@ VOID DoFileSave(HWND hwnd)
 	{
 		SendMessage(hwnd, WM_COMMAND, (WPARAM)ID_FILE_SAVEAS, 0);
 	}
+	return 0;
 
 }
 

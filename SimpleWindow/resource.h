@@ -10,6 +10,10 @@
 #define IDR_ACCELERATOR1                110
 #define IDR_MENU2                       111
 #define IDC_MAIN_EDIT                   111
+//Tools panel						
+#define IDC_MAIN_TOOL                   112
+//Statusbar
+#define IDC_MAIN_STATUS                 113
 
 #define HOTKEY_NEW						201
 #define HOTKEY_OPEN						202
