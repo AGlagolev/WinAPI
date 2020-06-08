@@ -31,6 +31,8 @@
 #define ID_Menu                         40007
 #define ID_HELP_USER                    40008
 #define ID_F1                           40009
+//  нопка работы со шрифтами
+#define ID_FORMAT_FONT                  40010
 
 // Next default values for new objects
 // 

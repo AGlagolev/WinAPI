@@ -15,6 +15,8 @@ CHAR szPath[MAX_PATH] = {};
 CHAR szSize[256] = {};
 
 CONST CHAR szFilter[] = "Text files (*.txt)\0*.txt\0All files (*.*)\0*.*\0";
+HFONT g_hFont;
+COLORREF g_rgbText;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -32,7 +34,6 @@ BOOL __stdcall DoFileNew(HWND hwnd)
 	SetWindowText(hEdit, "");
 	return 0;
 }
-
 VOID  WatchChanges(HWND hwnd, BOOL(__stdcall *Action)(HWND))
 {
 	BOOL DontClose = FALSE;
@@ -66,6 +67,8 @@ VOID  WatchChanges(HWND hwnd, BOOL(__stdcall *Action)(HWND))
 	}
 
 }
+VOID DoSelectFont(HWND hwnd);
+
 /***********************************WinMain**************************************************/
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -169,8 +172,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// Creating menu
 		{
 			HMENU hMenu = CreateMenu();
-			HMENU hSubMenu = CreatePopupMenu();
 
+			HMENU hSubMenu = CreatePopupMenu();
 			AppendMenu(hSubMenu, MF_STRING, ID_FILE_NEW, "&New");
 			AppendMenu(hSubMenu, MF_STRING, ID_FILE_OPEN, "&Open");
 			AppendMenu(hSubMenu, MF_SEPARATOR, 0,0);
@@ -180,6 +183,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			AppendMenu(hSubMenu, MF_STRING, ID_FILE_EXIT, "E&xit");
 			AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&File");
 		
+			hSubMenu = CreatePopupMenu();
+			AppendMenu(hSubMenu, MF_STRING, ID_FORMAT_FONT, "Fon&t");
+			AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "F&ormat");
+
 			hSubMenu = CreatePopupMenu();
 			AppendMenu(hSubMenu, MF_STRING, ID_HELP_ABOUT, "&About");
 			AppendMenu(hSubMenu, MF_STRING, ID_HELP_ABOUT, "&User");
@@ -282,6 +289,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			/*SendMessage(hStatus, SB_SETTEXT,0, (LPARAM)"This is the status bar...");
 			SendMessage(hStatus, SB_SETTEXT,3, (LPARAM)szPath);*/
 
+
+			// FONT
+			HDC hdc = GetDC(NULL);
+			int lfHeight = MulDiv(12, GetDeviceCaps(hdc, LOGPIXELSY), 72); // Определение высоты шрифта
+			ReleaseDC(NULL, hdc);
+			HFONT hFont = CreateFont
+			(
+				lfHeight,0,0,0,0,
+				FALSE,
+				0,
+				0,
+				RUSSIAN_CHARSET,
+				0,
+				0,
+				0,
+				0,
+				"Times New Roman"				
+				);
+			g_hFont = hFont; 
+			SendMessage(hEdit, WM_SETFONT, (WPARAM)hFont, 0);
 		}
 		
 
@@ -334,6 +361,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			switch (LOWORD(wParam)) // LOWORD содержит ID сообщения
 			{
+				case ID_FORMAT_FONT:
+				{
+					DoSelectFont(hwnd);
+				}
+				break;
+
 				case ID_FILE_NEW:
 				{					
 					WatchChanges(hwnd, DoFileNew);
@@ -818,7 +851,7 @@ BOOL __stdcall DoFileSave(HWND hwnd)
 	return 0;
 
 }
-
+/*******************************************   SetWindowsTitle  ******************************************************************************/
 VOID SetWindowsTitle(HWND hEdit)
 {
 	HWND hwndParent = GetParent(hEdit);
@@ -826,4 +859,38 @@ VOID SetWindowsTitle(HWND hEdit)
 	LPSTR lpszNameOnly = strrchr(szPath, '\\') + 1;
 	strcat_s(szTitle, MAX_PATH, lpszNameOnly);
 	SetWindowText(hwndParent, szTitle);
+}
+/*******************************************   DoSelectFont  ******************************************************************************/
+VOID DoSelectFont(HWND hwnd)
+{
+	CHOOSEFONT cf;
+	LOGFONT lf;
+
+	ZeroMemory(&cf, sizeof(CHOOSEFONT));
+	//ZeroMemory(&lf, sizeof(lf));
+
+	GetObject(g_hFont, sizeof(LOGFONT), &lf);
+
+	cf.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS;
+	cf.lStructSize = sizeof(CHOOSEFONT);
+	cf.hwndOwner = hwnd;
+	cf.lpLogFont = &lf;
+	cf.rgbColors = g_rgbText;
+	if (ChooseFont(&cf))
+	{
+		HFONT hf = CreateFontIndirect(&lf);
+		if (hf)
+		{
+			g_hFont = hf;
+			
+		}
+		else
+		{
+			MessageBox(hwnd, "Font creation is failed", "Error", MB_OK | MB_ICONERROR);
+
+		}
+		g_rgbText = cf.rgbColors;
+		SendMessage(GetDlgItem(hwnd, IDC_MAIN_EDIT), WM_SETFONT, (WPARAM)g_hFont, TRUE);		
+	}
+
 }
