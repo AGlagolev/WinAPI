@@ -17,16 +17,31 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CTLCOLORSTATIC:
 	{
+		if ((HWND)lParam == GetDlgItem(hwnd,IDC_COLOR))
+		{
+			HDC hdc = (HDC)wParam;
+			SetTextColor(hdc, RGB(0, 0, 178));
+			SetBkMode(hdc, OPAQUE);
+			SetBkColor(hdc, RGB(200, 0, 0));
+			HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 200));
+			SetTextColor(hdc, RGB(200, 0, 0));
+
+			return (LRESULT)hBrush;
+
+			//
+		}
+	}
+		break;
+	case WM_CTLCOLOREDIT:
+	{
 		HDC hdc = (HDC)wParam;
 		SetTextColor(hdc, RGB(0, 0, 178));
-		SetBkMode(hdc,TRANSPARENT);
+		SetBkMode(hdc, TRANSPARENT);
 		return (int)GetStockObject(NULL_BRUSH);
-		
-		//
+
 
 	}
 		break;
-
 	case WM_COMMAND:
 		switch (LOWORD(wParam))
 		{
